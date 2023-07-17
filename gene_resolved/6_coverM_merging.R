@@ -3,10 +3,11 @@
 #You have to change "15" to however many lines you have. This is N+15, so it will remove the top 14 rows. If you have more or less samples, you need to modify accordingly.
 library(tidyverse)
 
-###
+setwd("/Volumes/Macintosh HD/Users/josue.rodriguez/Library/CloudStorage/GoogleDrive-jarora2213@gmail.com/My Drive/University/wrighton_lab_phd/Trivedi_collaboration/read_mapping/gene_resolved_coverM_output/server_filtered_output/")
+###For running R on server: /home/opt/R_4.1.2/R-4.1.2/bin/R
 #Read in counts and modify the headers.
-counts = read.table("coverM_counts_notoprows.txt", sep = "\t", row.names=1)
-counts[1, ] = str_replace(counts[1, ], ".97ID.sorted Read Count", "_readcounts")
+counts = read.table("95_ID_coverM_counts_notoprow.txt", sep = "\t", row.names=1)
+counts[1, ] = str_replace(counts[1, ], ".95ID.sorted Read Count", "_readcounts")
 #function to make the first row the header names
 header.true <- function(df) {
   names(df) <- as.character(unlist(df[1,]))
@@ -16,15 +17,19 @@ header.true <- function(df) {
 counts_headerfix = header.true(counts)
 #reduce size for testing
 #counts_reduced = counts_headerfix[1:100, ]
+#Going to remove everything that is just zero across the board to reduce compute time.
+#counts_headerfix$sum_counts = rowSums(counts_headerfix) #sum rows
+#counts_headerfix = counts_df[!(counts_headerfix$sum_counts == 0),] #remove those equal to 0 in new counts_df$sum_counts
+#counts_headerfix = subset(counts_headerfix, select = -c(counts_headerfix)) #remove the sum column now that we're done with it.
 
 ###
-coverage = read.table("coverm_min75_mod.txt", sep = "\t", row.names=1)
-coverage[1, ] = str_replace(coverage[1, ], ".97ID.sorted Mean", "_coverage")
+coverage = read.table("95_ID_coverm_min75.txt", sep = "\t", row.names=1)
+coverage[1, ] = str_replace(coverage[1, ], ".95ID.sorted Mean", "_coverage")
 coverage_headerfix = header.true(coverage)
 #coverage_reduced = coverage_headerfix[1:100, ]
 
-depth = read.table("coverm_reads_per_base_mod.txt", sep = "\t", row.names=1)
-depth[1, ] = str_replace(depth[1, ], ".97ID.sorted Reads per base", "_depth")
+depth = read.table("95_ID_coverm_reads_per_base.txt", sep = "\t", row.names=1)
+depth[1, ] = str_replace(depth[1, ], ".95ID.sorted Reads per base", "_depth")
 depth_headerfix = header.true(depth)
 #depth_reduced = depth_headerfix[1:100, ]
 
@@ -95,7 +100,6 @@ df_list <- list(covered_fraction_v2,
 combined_df <- lapply(df_list, mod_long) %>%
   reduce(rbind)
 
-STOPPEDHEREXXXXX
 combined_df_wide <- combined_df %>%
   pivot_wider(names_from = "map_type",
               values_from = c("count"))
@@ -115,4 +119,36 @@ bin_counts_out <- bin_counts_matrix %>%
   as.data.frame() %>%
   rownames_to_column(var = "bin.id")
 
-write_csv(bin_counts_out, "strict_mapping_table_97id_75cov_3xdepth.csv")
+write_csv(bin_counts_out, "strict_mapping_table_95id_75cov_3xdepth.csv")
+
+###################
+#this is the last step that i had to do on server. Moving this over to local machine now.
+###################
+
+counts_df = read.csv("strict_mapping_table_95id_75cov_3xdepth.csv", row.names=1)
+
+#Going to remove everything that is just zero across the board to reduce compute time.
+counts_df$sum_counts = rowSums(counts_df) #sum rows
+counts_df_filtered = counts_df[!(counts_df$sum_counts == 0),] #remove those equal to 0 in new counts_df$sum_counts
+counts_df_filtered = subset(counts_df_filtered, select = -c(sum_counts)) #remove the sum column now that we're done with it.
+
+#Function for calculating relative abundance
+relabund <- function(df, columns = c(NA)) 
+  #takes feature table and calculates relative abundance of columns, omitting NA's
+  #considers only columns listed in columns argument (character vector of column names). 
+  #columns (default) = all columns
+{
+  if (NA %in% columns){
+    df <- sweep(df, 2, colSums(df, na.rm = TRUE), '/')
+  }
+  else {
+    df_relabund <- df %>% select(all_of(columns)) %>%
+      sweep(., 2, colSums(., na.rm = TRUE), '/')
+    df[,columns] <- df_relabund
+  }
+  
+  return(df)
+}
+
+relabund_from_counts = relabund(counts_df_filtered) #apply rel_abund function
+write.csv(relabund_from_counts, file="forest_fire_rel_abunds_95ID_75cov_3xdepth.csv")
