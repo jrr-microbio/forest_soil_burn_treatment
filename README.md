@@ -5,4 +5,5 @@ GitHub Repository for the manuscript titled: **Forest soil microbial community s
 Order: 
 1. Read processing and assembly
 2. Genome resolved
-3. Gene resolved
+3. 16S rRNA processing
+4. Gene resolved
