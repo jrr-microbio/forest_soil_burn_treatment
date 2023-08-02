@@ -25,6 +25,10 @@ genome_t = t(genome)
 genome_unburn = as.data.frame(t(genome[6:9,]))
 genome_burn = as.data.frame(t(genome[-c(6:9),]))
 
+genome_burnfreq0 = as.data.frame(t(genome[6:9,]))
+genome_burnfreq05 = as.data.frame(t(genome[c(4,5,10,11),]))
+genome_burnfreq08 = as.data.frame(t(genome[1:3,]))
+
 ##read in chemistry (nona)
 chem = read.table('/Volumes/Macintosh HD/Users/josue.rodriguez/Library/CloudStorage/GoogleDrive-jarora2213@gmail.com/My Drive/University/wrighton_lab_phd/Trivedi_collaboration/E133_sandra_combined_sample_metadata_for_JOSUE_METAG_v2.txt', sep = '\t', header = TRUE, check.names = T)
 chem = chem[-1,]
@@ -55,7 +59,6 @@ plot(accumcurve_unburn, add=T, ci.type="poly", col="black", lwd=2, ci=0.2, ci.lt
 ###############################################################################
 # Richness and shannon's stats
 ###############################################################################
-
 mean(specnumber(genome))
 sd(specnumber(genome))
 mean(specnumber(t(genome_unburn)))
@@ -65,12 +68,21 @@ sd(specnumber(t(genome_burn)))
 boxplot(specnumber(genome) ~ chem$treatment, ylab = "# of species", col = c("#F8766D", "#00BFC4"))
 t.test(specnumber(genome) ~ chem$treatment)
 
+boxplot(specnumber(genome) ~ chem$burnfreq, ylab = "# of species", col = c("#c5c5c5", "#ff721d", "#b0091a"))
+boxplot(specnumber(genome) ~ chem$yearssinceburn, ylab = "# of species", col = c("#c5c5c5", "#8ad2db"))
+t.test(specnumber(genome) ~ chem$yearssinceburn)
+
+
 mean(diversity(t(genome_unburn), index = "shannon"))
 mean(diversity(t(genome_burn), index = "shannon"))
 sd(diversity(t(genome_unburn), index = "shannon"))
 sd(diversity(t(genome_burn), index = "shannon"))
 boxplot(diversity(genome) ~ chem$treatment, ylab = "Shannon's H'", col = c("#F8766D", "#00BFC4")) 
 t.test(diversity(genome) ~ chem$treatment)
+
+boxplot(diversity(genome) ~ chem$burnfreq, ylab = "Shannon's H'", col = c("#c5c5c5", "#ff721d", "#b0091a"))
+boxplot(diversity(genome) ~ chem$yearssinceburn, ylab = "Shannon's H'", col = c("#c5c5c5", "#8ad2db"))
+t.test(diversity(genome) ~ chem$yearssinceburn)
 
 ###############################################################################
 # NMDSr - burn vs unburn
