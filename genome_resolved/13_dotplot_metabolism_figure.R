@@ -35,9 +35,3 @@ metabolism.long.joined %>%
   scale_colour_manual(values=pokecolorpal) +
   theme_bw() +
   theme(axis.text.x = element_text(angle=90, vjust=0.5, hjust=1, size=1))
-
-                                                                    
-metabolism_per_treatment=read.csv("/Volumes/Macintosh HD/Users/josue.rodriguez/Library/CloudStorage/GoogleDrive-jarora2213@gmail.com/My Drive/University/wrighton_lab_phd/Trivedi_collaboration/mag_metabolism_per_treatment.csv",header=T)
-
-metabolism_pertreatment_long = melt(data = metabolism_per_treatment)
-write.csv(metabolism_pertreatment_long, file = "metabolism_pertreatment_long.csv")
