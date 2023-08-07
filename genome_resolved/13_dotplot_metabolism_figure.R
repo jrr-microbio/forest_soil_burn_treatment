@@ -2,18 +2,13 @@ library(reshape2)
 library(tidyverse)
 library(reticulate)
 library(forcats)
-#path_to_python="/Users/josue.rodriguez/Library/r-miniconda/envs/r-reticulate/bin/python"
-#use_python(path_to_python)
-#py_install('pandas')
-#np=import('numpy')
-#pd=import('pandas')
 
 setwd("/Volumes/Macintosh HD/Users/josue.rodriguez/Library/CloudStorage/GoogleDrive-jarora2213@gmail.com/My Drive/University/wrighton_lab_phd/Trivedi_collaboration/")
 
-metabolism_matrix=read.csv("/Volumes/Macintosh HD/Users/josue.rodriguez/Library/CloudStorage/GoogleDrive-jarora2213@gmail.com/My Drive/University/wrighton_lab_phd/Trivedi_collaboration/MAG_OTU_linking/annotations/linked_zOTU_MAGs_DRAM_wTax_presabs.csv",header=T)
+metabolism_matrix=read.csv("/Volumes/Macintosh HD/Users/josue.rodriguez/Library/CloudStorage/GoogleDrive-jarora2213@gmail.com/My Drive/University/wrighton_lab_phd/Trivedi_collaboration/MAG_OTU_linking/annotations/13.1_linked_zOTU_MAGs_DRAM_wTax_presabs_v2_occupancy.csv",header=T)
 
 #remove the pw/sw indicator status. I'll put this back later.
-metabolism_matrix_short=metabolism_matrix[,-c(2:3)]
+metabolism_matrix_short=metabolism_matrix[,-c(2:4)]
 #Now convert this matrix into long format for ggplot2
 metabolism_long = melt(data = metabolism_matrix_short)
 #panda_metabolism_long=pandas.melt(metabolism_matrix_short, ignore_index=FALSE)
@@ -38,6 +33,7 @@ metabolism.long.joined %>%
   ggplot(aes(x=fct_reorder(genome,tax.index, .desc = TRUE), y = variable, size = value)) + 
   geom_point(aes(colour=factor(taxonomy))) + 
   scale_colour_manual(values=pokecolorpal) +
+  theme_bw() +
   theme(axis.text.x = element_text(angle=90, vjust=0.5, hjust=1, size=1))
 
                                                                     
