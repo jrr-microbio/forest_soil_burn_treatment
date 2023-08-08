@@ -6,7 +6,7 @@ library(janitor)
 setwd("/Volumes/Macintosh HD/Users/josue.rodriguez/Library/CloudStorage/GoogleDrive-jarora2213@gmail.com/My Drive/University/wrighton_lab_phd/Trivedi_collaboration/read_mapping/gene_resolved_coverM_output/MaAslin2/")
 
 # read in annotation ids
-ids= read.table("annotations_DRAM_noMinSize.tsv", header=TRUE, sep = "\t", fill = T)
+ids= read.delim("annotations_DRAM_noMinSize.tsv", header=TRUE, sep = "\t", fill = T)
 # create new variable "primary", selecting one id per gene. priority cazy > merops > kegg > vogdb
 ids$cazy_hits_summ=as.character(ids$cazy_ids) #bring in cazy id
 ids$peptidase_id_summ=as.character(ids$peptidase_id) #bring in peptidase id
@@ -20,8 +20,8 @@ annotation_ids = ids_only #make this cleaner name
 rm(ids_only) #just clear the env.
 
 # pulled DRAM module IDs from the genome summary form in the DRAM Github.
-module_info = read.table("DRAM_genome_summary_form.tsv", sep = "\t", header=T, na.strings = c("","NA"))
-joined_annots_and_module=left_join(annotation_ids, module_info,by=c("primary"="gene_id")) #merge the two files.
+module_info = read.delim("DRAM_genome_summary_form.tsv", sep = "\t", header=T, na.strings = c("","NA"))
+joined_annots_and_module=left_join(annotation_ids, module_info,by=c("primary"="gene_id"), relationship = "many-to-many") #merge the two files.
 #sum(duplicated(joined_annots_and_module$scaffold_ids)) #check no duplicates just in case
 
 #Now we want to bring in the abundances. I will left join each gene.
@@ -31,10 +31,8 @@ joined_abunds_annots_and_module=left_join(joined_annots_and_module, abunds, by=c
 sum(is.na(joined_abunds_annots_and_module)) #there are a bunch of NA genes. Do I just remove? Hm.
 short_abunds_annot_mod <- joined_abunds_annots_and_module %>%
   select(-c(gene_description, sheet, header, subheader, potential_amg, module)) #Shorten this to just primary ID, the module, and the abunds.
-short_abunds_annot_mod_no_none = short_abunds_annot_mod[!(short_abunds_annot_mod$primary == "none"),] #remove genes that could not be annotated. I'll run this both ways: With non-annotated and with only annotated.
+short_abunds_annot_mod_no_none = short_abunds_annot_mod[!(short_abunds_annot_mod$primary == "none"),] #remove genes that could not be annotated confidently.
 short_abunds_noscaff_ids_for_consolidate = short_abunds_annot_mod_no_none[,-1]
-
-#short_abunds_noscaff_ids_for_consolidate$primary <- sub("_", "-", short_abunds_noscaff_ids_for_consolidate$primary) 
 short_abunds_noscaff_ids_for_consolidate$primary <- gsub("_", "-", short_abunds_noscaff_ids_for_consolidate$primary)#i'm underscore delimiting some text so i'm just replacing underscores with dashes just in case.
 
 pivoted_df = short_abunds_noscaff_ids_for_consolidate %>%
@@ -42,7 +40,7 @@ pivoted_df = short_abunds_noscaff_ids_for_consolidate %>%
              values_to = "abund",
              names_to="sample")
 
-pivoted_df = pivoted_df[!(is.na(pivoted_df$primary) | pivoted_df$primary==""), ] #Some blanks in the ID column just because of how it was imported i believe. Removing all blank cels.
+pivoted_df = pivoted_df[!(is.na(pivoted_df$primary) | pivoted_df$primary==""), ] #Removing all blank cells to be safe.
 
 pivoted_df$NewIds <- paste(pivoted_df$primary, pivoted_df$sample, sep = "_") #for the life of me i could not figure out a simpler way to do this besides just merging the id and the sample before the aggregate and then just splitting it up. whatever.
 
@@ -54,7 +52,7 @@ Maaslin_wide_input = summed_gene_id_abunds_persamp %>% pivot_wider(names_from = 
 
 Maaslin_wide_input_2 = as.data.frame(t(Maaslin_wide_input))
 Maaslin_wide_input_2 = Maaslin_wide_input_2 %>%
-  row_to_names(row_number = 1) #This is to make it match exactly their file "pathabundance_relab" from here: download.file("https://raw.githubusercontent.com/biobakery/biobakery_workflows/master/examples/tutorial/stats_vis/input/pathabundance_relab.tsv", "./pathabundance_relab.tsv")
+  row_to_names(row_number = 1) #Making row 1 the column to make it match exactly their file "pathabundance_relab" from here: download.file("https://raw.githubusercontent.com/biobakery/biobakery_workflows/master/examples/tutorial/stats_vis/input/pathabundance_relab.tsv", "./pathabundance_relab.tsv")
 row_names <- row.names(Maaslin_wide_input_2) #This needs to be numeric and for some reason isnt so im just going to fix. Extract row names first.
 num_Maaslin_wide_input = as.data.frame(lapply(Maaslin_wide_input_2, as.numeric), stringsAsFactors = F) #make all numeric
 row.names(num_Maaslin_wide_input) <- row_names #Now add the rownames back in.
@@ -82,7 +80,7 @@ fit_data = Maaslin2(input_data = num_Maaslin_wide_input,
                                min_prevalence = 0,
                                normalization  = "TSS",
                                transform = "LOG",
-                               output         = "output_v1", 
+                               output         = "output_burncontrol_v2", 
                                fixed_effects  = "burn_control")
 
 fit_data = Maaslin2(input_data = num_Maaslin_wide_input, 
@@ -90,7 +88,7 @@ fit_data = Maaslin2(input_data = num_Maaslin_wide_input,
                     min_prevalence = 0,
                     normalization  = "TSS",
                     transform = "LOG",
-                    output         = "output_burnfreq_v1", 
+                    output         = "output_burnfreq_v2", 
                     fixed_effects  = "burnfreq")
 
 fit_data = Maaslin2(input_data = num_Maaslin_wide_input, 
@@ -98,5 +96,5 @@ fit_data = Maaslin2(input_data = num_Maaslin_wide_input,
                     min_prevalence = 0,
                     normalization  = "TSS",
                     transform = "LOG",
-                    output         = "output_woodyveg_v1", 
+                    output         = "output_woodyveg_v2", 
                     fixed_effects  = "percentwoodyveg")
