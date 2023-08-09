@@ -69,32 +69,149 @@ row.names(num_Maaslin_wide_input) <- row_names #Now add the rownames back in.
      #                       fixed_effects  = c("diagnosis", "dysbiosis"),
       #                      reference      = c("diagnosis,nonIBD"))
 
+#Now i'm going to remove any genes from our dataset that are only present in a single sample. Using 10% occupancy (i.e., >1 sample)
+num_Maaslin_wide_input_filtered <- num_Maaslin_wide_input %>%
+  filter(rowSums(. != 0, na.rm = TRUE) > 1)
+
 #Now let's do it with our own data. Import the metadata table.
 forest_soil_metadata = read.table("E133_sandra_combined_sample_metadata_for_JOSUE_METAG_v2.txt", sep = "\t", header=T, row.names=1)
 
 library(Maaslin2)
 
 #And now run the same commands.
-fit_data = Maaslin2(input_data = num_Maaslin_wide_input, 
+fit_data = Maaslin2(input_data = num_Maaslin_wide_input_filtered, 
                                input_metadata = forest_soil_metadata, 
                                min_prevalence = 0,
                                normalization  = "TSS",
                                transform = "LOG",
-                               output         = "output_burncontrol_v2", 
+                               output         = "output_burncontrol_v3_filtered", 
                                fixed_effects  = "burn_control")
 
-fit_data = Maaslin2(input_data = num_Maaslin_wide_input, 
+burncontrol_sig_results = read.delim(file="output_burncontrol_v3_filtered/significant_results.tsv")
+ids= read.delim("annotations_DRAM_noMinSize.tsv", header=TRUE, sep = "\t", fill = T)
+ids=ids[,-c(1:15)]
+joined_annots_and_module_formerge=joined_annots_and_module[,-1] #remove first column with gene id
+
+#this only really does the gene_id column for each gene that has it (which is a small subset).
+burncontrol_sig_results=left_join(burncontrol_sig_results, joined_annots_and_module_formerge, by=c("feature"="primary")) #now left join them to get the gene descriptions. 
+burncontrol_sig_results=burncontrol_sig_results[!duplicated(burncontrol_sig_results$feature),] #now remove the duplicated entries. 
+burncontrol_sig_results=left_join(burncontrol_sig_results, joined_annots_and_module_formerge, by=c("feature"="primary")) #now left join them to get the gene descriptions. This does general gene_id.
+burncontrol_sig_results=burncontrol_sig_results[!duplicated(burncontrol_sig_results$feature),] #now remove the duplicated entries. 
+#################################### MEROPS
+#################################### MEROPS
+#################################### MEROPS
+#Manually doing the other types of gene IDs we used to get more information.
+MER0subset_burncontrol_sig_results <- subset(burncontrol_sig_results, grepl("MER", feature)) #make a subset of all merops
+MER0subset_burncontrol_sig_results=left_join(MER0subset_burncontrol_sig_results, ids, by=c("feature"="peptidase_id")) #now left join them to get the gene descriptions. 
+MER0subset_burncontrol_sig_results=MER0subset_burncontrol_sig_results[!duplicated(MER0subset_burncontrol_sig_results$feature),] #now remove the duplicated entries. 
+#################################### VOG
+#################################### VOG
+#################################### VOG
+VOGsubset_burncontrol_sig_results <- subset(burncontrol_sig_results, grepl("VOG", feature)) #make a subset of all VOGDB
+VOGsubset_burncontrol_sig_results=left_join(VOGsubset_burncontrol_sig_results, ids, by=c("feature"="vogdb_id")) #now left join them to get the gene descriptions. 
+VOGsubset_burncontrol_sig_results=VOGsubset_burncontrol_sig_results[!duplicated(VOGsubset_burncontrol_sig_results$feature),] #now remove the duplicated entries. 
+#################################### KEGG
+#################################### KEGG
+#################################### KEGG
+KEGGsubset_burncontrol_sig_results <- subset(burncontrol_sig_results, grepl("K", feature)) #make a subset of all kegg
+KEGGsubset_burncontrol_sig_results=left_join(KEGGsubset_burncontrol_sig_results, ids, by=c("feature"="ko_id")) #now left join them to get the gene descriptions. 
+KEGGsubset_burncontrol_sig_results=KEGGsubset_burncontrol_sig_results[!duplicated(KEGGsubset_burncontrol_sig_results$feature),] #now remove the duplicated entries. 
+#################################### GH
+#################################### GH
+#################################### GH
+GHsubset_burncontrol_sig_results <- subset(burncontrol_sig_results, grepl("GH", feature)) #make a subset of all kegg
+GHsubset_burncontrol_sig_results=left_join(GHsubset_burncontrol_sig_results, ids, by=c("feature"="cazy_ids")) #now left join them to get the gene descriptions. 
+GHsubset_burncontrol_sig_results=GHsubset_burncontrol_sig_results[!duplicated(GHsubset_burncontrol_sig_results$feature),] #now remove the duplicated entries. 
+#Now im just going to write these files out.
+write.csv(MER0subset_burncontrol_sig_results, file="MER_subset_burncontrol_sig.csv")
+write.csv(VOGsubset_burncontrol_sig_results, file="VOG_subset_burncontrol_sig.csv")
+write.csv(KEGGsubset_burncontrol_sig_results, file="KEGG_subset_burncontrol_sig.csv")
+write.csv(GHsubset_burncontrol_sig_results, file="GH_subset_burncontrol_sig.csv")
+
+#####################
+#####################
+#####################
+
+fit_data = Maaslin2(input_data = num_Maaslin_wide_input_filtered, 
                     input_metadata = forest_soil_metadata, 
                     min_prevalence = 0,
                     normalization  = "TSS",
                     transform = "LOG",
-                    output         = "output_burnfreq_v2", 
+                    output         = "output_burnfreq_v3_filtered", 
                     fixed_effects  = "burnfreq")
 
-fit_data = Maaslin2(input_data = num_Maaslin_wide_input, 
+burnfreq_sig_results = read.delim(file="output_burnfreq_v3_filtered/significant_results.tsv")
+#################################### MEROPS
+#################################### MEROPS
+#################################### MEROPS
+#Manually doing the other types of gene IDs we used to get more information.
+MER0subset_burnfreq_sig_results <- subset(burnfreq_sig_results, grepl("MER", feature)) #make a subset of all merops
+MER0subset_burnfreq_sig_results=left_join(MER0subset_burnfreq_sig_results, ids, by=c("feature"="peptidase_id")) #now left join them to get the gene descriptions. 
+MER0subset_burnfreq_sig_results=MER0subset_burnfreq_sig_results[!duplicated(MER0subset_burnfreq_sig_results$feature),] #now remove the duplicated entries. 
+#################################### VOG
+#################################### VOG
+#################################### VOG
+VOGsubset_burnfreq_sig_results <- subset(burnfreq_sig_results, grepl("VOG", feature)) #make a subset of all VOGDB
+VOGsubset_burnfreq_sig_results=left_join(VOGsubset_burnfreq_sig_results, ids, by=c("feature"="vogdb_id")) #now left join them to get the gene descriptions. 
+VOGsubset_burnfreq_sig_results=VOGsubset_burnfreq_sig_results[!duplicated(VOGsubset_burnfreq_sig_results$feature),] #now remove the duplicated entries. 
+#################################### KEGG
+#################################### KEGG
+#################################### KEGG
+KEGGsubset_burnfreq_sig_results <- subset(burnfreq_sig_results, grepl("K", feature)) #make a subset of all kegg
+KEGGsubset_burnfreq_sig_results=left_join(KEGGsubset_burnfreq_sig_results, ids, by=c("feature"="ko_id")) #now left join them to get the gene descriptions. 
+KEGGsubset_burnfreq_sig_results=KEGGsubset_burnfreq_sig_results[!duplicated(KEGGsubset_burnfreq_sig_results$feature),] #now remove the duplicated entries. 
+#################################### GH
+#################################### GH
+#################################### GH
+GHsubset_burnfreq_sig_results <- subset(burnfreq_sig_results, grepl("GH", feature)) #make a subset of all kegg
+GHsubset_burnfreq_sig_results=left_join(GHsubset_burnfreq_sig_results, ids, by=c("feature"="cazy_ids")) #now left join them to get the gene descriptions. 
+GHsubset_burnfreq_sig_results=GHsubset_burnfreq_sig_results[!duplicated(GHsubset_burnfreq_sig_results$feature),] #now remove the duplicated entries. 
+#Now im just going to write these files out.
+write.csv(MER0subset_burnfreq_sig_results, file="MER_subset_burnfreq_sig.csv")
+write.csv(VOGsubset_burnfreq_sig_results, file="VOG_subset_burnfreq_sig.csv")
+write.csv(KEGGsubset_burnfreq_sig_results, file="KEGG_subset_burnfreq_sig.csv")
+write.csv(GHsubset_burnfreq_sig_results, file="GH_subset_burnfreq_sig.csv")
+
+#####################
+#####################
+#####################
+
+fit_data = Maaslin2(input_data = num_Maaslin_wide_input_filtered, 
                     input_metadata = forest_soil_metadata, 
                     min_prevalence = 0,
                     normalization  = "TSS",
                     transform = "LOG",
-                    output         = "output_woodyveg_v2", 
+                    output         = "output_woodyveg_v3_filtered", 
                     fixed_effects  = "percentwoodyveg")
+
+woodyveg_sig_results = read.delim(file="output_woodyveg_v3_filtered/significant_results.tsv")
+#################################### MEROPS
+#################################### MEROPS
+#################################### MEROPS
+#Manually doing the other types of gene IDs we used to get more information.
+MER0subset_woodyveg_sig_results <- subset(woodyveg_sig_results, grepl("MER", feature)) #make a subset of all merops
+MER0subset_woodyveg_sig_results=left_join(MER0subset_woodyveg_sig_results, ids, by=c("feature"="peptidase_id")) #now left join them to get the gene descriptions. 
+MER0subset_woodyveg_sig_results=MER0subset_woodyveg_sig_results[!duplicated(MER0subset_woodyveg_sig_results$feature),] #now remove the duplicated entries. 
+#################################### VOG
+#################################### VOG
+#################################### VOG
+VOGsubset_woodyveg_sig_results <- subset(woodyveg_sig_results, grepl("VOG", feature)) #make a subset of all VOGDB
+VOGsubset_woodyveg_sig_results=left_join(VOGsubset_woodyveg_sig_results, ids, by=c("feature"="vogdb_id")) #now left join them to get the gene descriptions. 
+VOGsubset_woodyveg_sig_results=VOGsubset_woodyveg_sig_results[!duplicated(VOGsubset_woodyveg_sig_results$feature),] #now remove the duplicated entries. 
+#################################### KEGG
+#################################### KEGG
+#################################### KEGG
+KEGGsubset_woodyveg_sig_results <- subset(woodyveg_sig_results, grepl("K", feature)) #make a subset of all kegg
+KEGGsubset_woodyveg_sig_results=left_join(KEGGsubset_woodyveg_sig_results, ids, by=c("feature"="ko_id")) #now left join them to get the gene descriptions. 
+KEGGsubset_woodyveg_sig_results=KEGGsubset_woodyveg_sig_results[!duplicated(KEGGsubset_woodyveg_sig_results$feature),] #now remove the duplicated entries. 
+#################################### GH
+#################################### GH
+#################################### GH
+GHsubset_woodyveg_sig_results <- subset(woodyveg_sig_results, grepl("GH", feature)) #make a subset of all kegg
+GHsubset_woodyveg_sig_results=left_join(GHsubset_woodyveg_sig_results, ids, by=c("feature"="cazy_ids")) #now left join them to get the gene descriptions. 
+GHsubset_woodyveg_sig_results=GHsubset_woodyveg_sig_results[!duplicated(GHsubset_woodyveg_sig_results$feature),] #now remove the duplicated entries. 
+#Now im just going to write these files out.
+write.csv(MER0subset_woodyveg_sig_results, file="MER_subset_woodyveg_sig.csv")
+write.csv(VOGsubset_woodyveg_sig_results, file="VOG_subset_woodyveg_sig.csv")
+write.csv(KEGGsubset_woodyveg_sig_results, file="KEGG_subset_woodyveg_sig.csv")
+write.csv(GHsubset_woodyveg_sig_results, file="GH_subset_woodyveg_sig.csv")
