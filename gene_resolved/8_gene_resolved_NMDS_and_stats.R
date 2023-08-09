@@ -98,7 +98,7 @@ stressplot(NMDS_Bray_gene)
 #Now to start actually plotting this on ggplot.
 #Pull out the scores with the new R framework
 data.scores = as.data.frame(scores(NMDS_Bray_gene)$sites)
-data.scores$chemistry = chem$treatment
+data.scores$chemistry = chem$burnunit
 
 ###########Now do the final plot with the loadings as bars.
 distance <- function(x, y, home = c(0,0)) {
@@ -117,20 +117,3 @@ plot_genes <- data.scores %>%
   geom_mark_ellipse(aes(fill=chemistry, color = chemistry, label = chemistry)) 
 
 plot_genes
-
-###############################################################################
-# Next up - indicator - burn vs unburn
-###############################################################################
-
-library(indicspecies)
-
-set.seed(1234) #set a random seed
-indic.burntreat <- multipatt(gene, chem$burnunit, duleg = F, func = "r.g",
-                             permutations = 9999) #test here whether the gene is an indocator for whatever treatment
-
-indic.burntreat <- indic.burntreat$sign #export results from object of multipatt
-indic.burntreat$MAG_id <- rownames(indic.burntreat) #add in a column with MAG id
-indic.burntreat$p.fdr <- p.adjust(indic.burntreat$p.value, method = "fdr") #run a false discovery rate correction 
-indic.burntreat <- indic.burntreat %>%
-  filter(p.fdr < 0.05)
-table(indic.burntreat$index) #filter out everything that isn't significant
