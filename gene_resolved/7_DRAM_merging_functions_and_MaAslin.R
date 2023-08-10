@@ -6,7 +6,7 @@ library(janitor)
 setwd("/Volumes/Macintosh HD/Users/josue.rodriguez/Library/CloudStorage/GoogleDrive-jarora2213@gmail.com/My Drive/University/wrighton_lab_phd/Trivedi_collaboration/read_mapping/gene_resolved_coverM_output/MaAslin2/")
 
 # read in annotation ids
-ids= read.delim("annotations_DRAM_noMinSize.tsv", header=TRUE, sep = "\t", fill = T)
+ids= read.delim("7.1_annotations_DRAM_noMinSize.tsv", header=TRUE, sep = "\t", fill = T)
 # create new variable "primary", selecting one id per gene. priority cazy > merops > kegg > vogdb
 ids$cazy_hits_summ=as.character(ids$cazy_ids) #bring in cazy id
 ids$peptidase_id_summ=as.character(ids$peptidase_id) #bring in peptidase id
@@ -20,12 +20,12 @@ annotation_ids = ids_only #make this cleaner name
 rm(ids_only) #just clear the env.
 
 # pulled DRAM module IDs from the genome summary form in the DRAM Github.
-module_info = read.delim("DRAM_genome_summary_form.tsv", sep = "\t", header=T, na.strings = c("","NA"))
+module_info = read.delim("7.2_DRAM_genome_summary_form.tsv", sep = "\t", header=T, na.strings = c("","NA"))
 joined_annots_and_module=left_join(annotation_ids, module_info,by=c("primary"="gene_id"), relationship = "many-to-many") #merge the two files.
 #sum(duplicated(joined_annots_and_module$scaffold_ids)) #check no duplicates just in case
 
 #Now we want to bring in the abundances. I will left join each gene.
-abunds = read.csv("forest_fire_rel_abunds_95ID_75cov_3xdepth.csv")
+abunds = read.csv("7.3_and_8.1_forest_fire_rel_abunds_95ID_75cov_3xdepth.csv")
 #sum(duplicated(abunds$scaffold_ids)) #check no duplicates just in case
 joined_abunds_annots_and_module=left_join(joined_annots_and_module, abunds, by=c("scaffold_ids"="id"))
 sum(is.na(joined_abunds_annots_and_module)) #there are a bunch of NA genes. Do I just remove? Hm.
@@ -88,7 +88,7 @@ fit_data = Maaslin2(input_data = num_Maaslin_wide_input_filtered,
                                fixed_effects  = "burn_control")
 
 burncontrol_sig_results = read.delim(file="output_burncontrol_v3_filtered/significant_results.tsv")
-ids= read.delim("annotations_DRAM_noMinSize.tsv", header=TRUE, sep = "\t", fill = T)
+ids= read.delim("7.1_annotations_DRAM_noMinSize.tsv", header=TRUE, sep = "\t", fill = T)
 ids=ids[,-c(1:15)]
 joined_annots_and_module_formerge=joined_annots_and_module[,-1] #remove first column with gene id
 
