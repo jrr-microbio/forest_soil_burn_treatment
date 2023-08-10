@@ -35,7 +35,7 @@ gene_burnfreq05 = as.data.frame(t(gene[c(4,5,10,11),]))
 gene_burnfreq08 = as.data.frame(t(gene[1:3,]))
 
 ##read in chemistry (nona)
-chem = read.table('E133_sandra_combined_sample_metadata_for_JOSUE_METAG_v2.txt', sep = '\t', header = TRUE, check.names = T)
+chem = read.table('7.4_and_8.2_E133_sandra_combined_sample_metadata_for_JOSUE_METAG_v2.txt', sep = '\t', header = TRUE, check.names = T)
 chem = chem[-1,]
 #chem = chem[-9,]
 rownames(chem)=chem[,1]
