@@ -18,7 +18,7 @@ library(ggforce)
 setwd("/Volumes/Macintosh HD/Users/josue.rodriguez/Library/CloudStorage/GoogleDrive-jarora2213@gmail.com/My Drive/University/wrighton_lab_phd/Trivedi_collaboration/gene_resolved/")
 
 ##read in feature table with species as columns and samples as rows
-gene<-t(read.csv('forest_fire_rel_abunds_95ID_75cov_3xdepth.csv', sep=",", header=T,check.names=TRUE, row.names = 1, stringsAsFactors = F))
+gene<-t(read.csv('7.3_and_8.1_forest_fire_rel_abunds_95ID_75cov_3xdepth.csv', sep=",", header=T,check.names=TRUE, row.names = 1, stringsAsFactors = F))
 #gene = as.data.frame(lapply(gene, as.numeric), stringsAsFactors = F) #make all numeric
 #Now i'm going to remove any genes from our dataset that are only present in a single sample. Using 10% occupancy (i.e., >1 sample)
 gene=as.data.frame(gene)
@@ -35,7 +35,7 @@ gene_burnfreq05 = as.data.frame(t(gene[c(4,5,10,11),]))
 gene_burnfreq08 = as.data.frame(t(gene[1:3,]))
 
 ##read in chemistry (nona)
-chem = read.table('/Volumes/Macintosh HD/Users/josue.rodriguez/Library/CloudStorage/GoogleDrive-jarora2213@gmail.com/My Drive/University/wrighton_lab_phd/Trivedi_collaboration/E133_sandra_combined_sample_metadata_for_JOSUE_METAG_v2.txt', sep = '\t', header = TRUE, check.names = T)
+chem = read.table('E133_sandra_combined_sample_metadata_for_JOSUE_METAG_v2.txt', sep = '\t', header = TRUE, check.names = T)
 chem = chem[-1,]
 #chem = chem[-9,]
 rownames(chem)=chem[,1]
