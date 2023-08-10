@@ -30,13 +30,13 @@ source /opt/Miniconda2/miniconda2/bin/activate qiime2-2021.2
 
 qiime tools import \
   --type 'FeatureData[Sequence]' \
-  --input-path /home/projects-wrighton/Trivedi_soil_fire/reads/all_bins_renamed_scaffolds/qiime2_gtdb_classifier/bac120_and_ar53_ssu_reps_r207.fna \
+  --input-path 1.1_bac120_and_ar53_ssu_reps_r207.fna \
   --output-path GTDB_otus.qza
 
 qiime tools import \
   --type 'FeatureData[Taxonomy]' \
   --input-format HeaderlessTSVTaxonomyFormat \
-  --input-path /home/projects-wrighton/Trivedi_soil_fire/reads/all_bins_renamed_scaffolds/qiime2_gtdb_classifier/bac120_and_ar53_taxonomy_r207.tsv \
+  --input-path 1.2_bac120_and_ar53_taxonomy_r207.tsv \
   --output-path gtdb_ref-taxonomy.qza
 
 qiime feature-classifier fit-classifier-naive-bayes \
@@ -46,7 +46,7 @@ qiime feature-classifier fit-classifier-naive-bayes \
 
   qiime feature-classifier classify-sklearn \
   --i-classifier gtdb_classifier.qza \
-  --i-reads /home/projects-wrighton/Trivedi_soil_fire/reads/all_bins_renamed_scaffolds/qiime2_gtdb_classifier/fire_soil_E133_and_SANDRA_5_667_ALL_SAMPLES_08_zOTUs_040722_TAXONOMY_HEADERS.fa \
+  --i-reads 1.3_fire_soil_E133_and_SANDRA_5_667_ALL_SAMPLES_08_zOTUs_040722_TAXONOMY_HEADERS.fa \
   --o-classification gtdb_taxonomy_leaundrareads.qza
 
 qiime metadata tabulate \
